@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schemas.premid.app/metadata/1.16",
+  "apiVersion": 1,
+  "author": {
+    "id": "751341509068193840",
+    "name": "mitac_"
+  },
+  "service": "Kiite",
+  "description": {
+    "en": "Discover Vocaloid and UTAU music from Niconico with playlists, Radar, and sharing.",
+    "ja": "ニコニコ動画のボカロ・UTAU楽曲をプレイリストや Radar で発掘・共有できる音楽サービスです。"
+  },
+  "url": "kiite.jp",
+  "regExp": "^https?[:][/][/]([a-z0-9-]+[.])*kiite[.]jp[/]",
+  "version": "1.0.0",
+  "logo": "https://files.catbox.moe/jl6hi7.png",
+  "thumbnail": "https://files.catbox.moe/vcwrm9.png",
+  "color": "#FF33AA",
+  "category": "music",
+  "tags": [
+    "audio",
+    "music",
+    "niconico",
+    "player",
+    "vocaloid"
+  ],
+  "settings": [
+    {
+      "id": "lang",
+      "multiLanguage": true
+    }
+  ]
+}
