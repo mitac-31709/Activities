@@ -17,8 +17,20 @@ const SELECTORS = {
   video: '#jp_video_container video',
 } as const
 
+const NICO_CDN_THUMB_RE
+  = /https:\/\/nicovideo\.cdn\.nimg\.jp\/thumbnails\/[^"');}\s]+/g
+
 function normalizeText(s: string | null | undefined): string {
   return s?.replaceAll('\u00A0', ' ').trim() ?? ''
+}
+
+function dataAttr(el: Element | null | undefined, name: string): string | undefined {
+  const v = el?.getAttribute(name)?.trim()
+  return v || undefined
+}
+
+function nowPlayingRow(): Element | null {
+  return document.querySelector(SELECTORS.nowPlayingRow)
 }
 
 function isPlaceholderThumbnail(url: string): boolean {
@@ -42,13 +54,70 @@ function backgroundImageFromElement(el: HTMLElement): string | undefined {
   )
 }
 
-function dataAttr(el: Element | null | undefined, name: string): string | undefined {
-  const v = el?.getAttribute(name)?.trim()
-  return v || undefined
+function nicoThumbnailUrlsInCssText(css: string): string[] {
+  const out: string[] = []
+  NICO_CDN_THUMB_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = NICO_CDN_THUMB_RE.exec(css)) !== null) {
+    const url = m[0]
+    if (!isPlaceholderThumbnail(url))
+      out.push(url)
+  }
+  return out
 }
 
-function nowPlayingRow(): Element | null {
-  return document.querySelector(SELECTORS.nowPlayingRow)
+function pickBestNicoThumbnailUrl(urls: string[]): string | undefined {
+  if (urls.length === 0)
+    return undefined
+  const unique = [...new Set(urls)]
+  const rank = (u: string) =>
+    u.endsWith('.L') ? 3 : u.endsWith('.M') ? 2 : 1
+  unique.sort((a, b) => rank(b) - rank(a))
+  return unique[0]
+}
+
+function thumbnailFromNicoHeadStyles(): string | undefined {
+  const { head } = document
+  if (!head)
+    return undefined
+  const urls: string[] = []
+  for (const style of head.querySelectorAll('style')) {
+    const text = style.textContent
+    if (text)
+      urls.push(...nicoThumbnailUrlsInCssText(text))
+  }
+  return pickBestNicoThumbnailUrl(urls)
+}
+
+function thumbnailFromPlayerThumb(): string | undefined {
+  const el = document.querySelector<HTMLElement>(SELECTORS.playerThumb)
+  return el ? backgroundImageFromElement(el) : undefined
+}
+
+function thumbnailFromPlayingRow(): string | undefined {
+  const url = dataAttr(nowPlayingRow(), 'data-thumbnail')
+  return url && !isPlaceholderThumbnail(url) ? url : undefined
+}
+
+function thumbnailFromVideoPoster(video: HTMLVideoElement | null): string | undefined {
+  if (!video)
+    return undefined
+  const poster = video.getAttribute('poster') || video.poster
+  return poster && !isPlaceholderThumbnail(poster) ? poster : undefined
+}
+
+function playerVideo(): HTMLVideoElement | null {
+  return document.querySelector(SELECTORS.video)
+}
+
+function playerThumbnail(): string | undefined {
+  const video = playerVideo()
+  return (
+    thumbnailFromPlayerThumb()
+    ?? thumbnailFromPlayingRow()
+    ?? thumbnailFromVideoPoster(video)
+    ?? thumbnailFromNicoHeadStyles()
+  )
 }
 
 function playerTitle(): string | null {
@@ -69,29 +138,6 @@ function playerCreator(): string | undefined {
   if (fromLink)
     return fromLink
   return dataAttr(nowPlayingRow(), 'data-creator-name')
-}
-
-function playerThumbnail(): string | undefined {
-  const thum = document.querySelector<HTMLElement>(SELECTORS.playerThumb)
-  if (thum) {
-    const fromEl = backgroundImageFromElement(thum)
-    if (fromEl)
-      return fromEl
-  }
-
-  const fromRow = dataAttr(nowPlayingRow(), 'data-thumbnail')
-  if (fromRow && !isPlaceholderThumbnail(fromRow))
-    return fromRow
-
-  const video = playerVideo()
-  const poster = video?.getAttribute('poster') || video?.poster
-  if (poster && !isPlaceholderThumbnail(poster))
-    return poster
-  return undefined
-}
-
-function playerVideo(): HTMLVideoElement | null {
-  return document.querySelector(SELECTORS.video)
 }
 
 function isTrackPlaying(video: HTMLVideoElement | null): boolean {
