@@ -13,8 +13,8 @@
   "url": "kiite.jp",
   "regExp": "^https?[:][/][/]([a-z0-9-]+[.])*kiite[.]jp[/]",
   "version": "1.0.0",
-  "logo": "https://files.catbox.moe/jl6hi7.png",
-  "thumbnail": "https://files.catbox.moe/vcwrm9.png",
+  "logo": "https://i.imgur.com/nV7VyEd.png",
+  "thumbnail": "https://i.imgur.com/B7vZZS6.png",
   "color": "#FF33AA",
   "category": "music",
   "tags": [
