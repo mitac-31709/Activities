@@ -24,7 +24,10 @@ function normalizeText(s: string | null | undefined): string {
   return s?.replaceAll('\u00A0', ' ').trim() ?? ''
 }
 
-function dataAttr(el: Element | null | undefined, name: string): string | undefined {
+function dataAttr(
+  el: Element | null | undefined,
+  name: string,
+): string | undefined {
   const v = el?.getAttribute(name)?.trim()
   return v || undefined
 }
@@ -55,25 +58,16 @@ function backgroundImageFromElement(el: HTMLElement): string | undefined {
 }
 
 function nicoThumbnailUrlsInCssText(css: string): string[] {
-  const out: string[] = []
-  NICO_CDN_THUMB_RE.lastIndex = 0
-  let m: RegExpExecArray | null
-  while ((m = NICO_CDN_THUMB_RE.exec(css)) !== null) {
-    const url = m[0]
-    if (!isPlaceholderThumbnail(url))
-      out.push(url)
-  }
-  return out
+  return Array.from(css.matchAll(NICO_CDN_THUMB_RE))
+    .map(m => m[0])
+    .filter(url => !isPlaceholderThumbnail(url))
 }
 
 function pickBestNicoThumbnailUrl(urls: string[]): string | undefined {
   if (urls.length === 0)
     return undefined
-  const unique = [...new Set(urls)]
-  const rank = (u: string) =>
-    u.endsWith('.L') ? 3 : u.endsWith('.M') ? 2 : 1
-  unique.sort((a, b) => rank(b) - rank(a))
-  return unique[0]
+  const rank = (u: string) => (u.endsWith('.L') ? 3 : u.endsWith('.M') ? 2 : 1)
+  return urls.reduce((best, curr) => (rank(curr) > rank(best) ? curr : best))
 }
 
 function thumbnailFromNicoHeadStyles(): string | undefined {
@@ -99,7 +93,9 @@ function thumbnailFromPlayingRow(): string | undefined {
   return url && !isPlaceholderThumbnail(url) ? url : undefined
 }
 
-function thumbnailFromVideoPoster(video: HTMLVideoElement | null): string | undefined {
+function thumbnailFromVideoPoster(
+  video: HTMLVideoElement | null,
+): string | undefined {
   if (!video)
     return undefined
   const poster = video.getAttribute('poster') || video.poster
@@ -131,7 +127,9 @@ function playerTitle(): string | null {
 
 function playerCreator(): string | undefined {
   const bar = document.querySelector(SELECTORS.playerBarCreator)
-  const fromArtist = normalizeText(bar?.querySelector('.jp-artist')?.textContent)
+  const fromArtist = normalizeText(
+    bar?.querySelector('.jp-artist')?.textContent,
+  )
   if (fromArtist)
     return fromArtist
   const fromLink = normalizeText(bar?.querySelector('a')?.textContent)
@@ -192,68 +190,57 @@ function applyBrowsingState(
   data: PresenceData,
 ): void {
   delete data.state
-  delete data.smallImageKey
+  data.smallImageKey = Assets.Reading
 
   if (pathname === '/' || pathname === '') {
     data.details = strings.viewHome
-    data.smallImageKey = Assets.Reading
-    return
   }
-  if (pathname.startsWith('/playlist/')) {
-    const title = document.querySelector('h1.playlist-dtl-title')?.textContent?.trim()
+  else if (pathname.startsWith('/playlist/')) {
+    const title = document
+      .querySelector('h1.playlist-dtl-title')
+      ?.textContent
+      ?.trim()
     data.details = title ? strings.viewPlaylist : strings.viewAPlaylist
     if (title)
       data.state = title
-    data.smallImageKey = Assets.Reading
-    return
   }
-  if (pathname.startsWith('/user/')) {
-    const name = document.querySelector('h1.user-dtl-name')?.textContent?.trim()
-      ?? document.querySelector('#user-info')?.getAttribute('data-nickname')
+  else if (pathname.startsWith('/user/')) {
+    const name
+      = document.querySelector('h1.user-dtl-name')?.textContent?.trim()
+        ?? document.querySelector('#user-info')?.getAttribute('data-nickname')
     data.details = strings.viewUser
     if (name)
       data.state = name
-    data.smallImageKey = Assets.Reading
-    return
   }
-  if (pathname.startsWith('/creator/')) {
-    const name = document.querySelector('h1.playlist-dtl-title')?.textContent?.trim()
+  else if (pathname.startsWith('/creator/')) {
+    const name = document
+      .querySelector('h1.playlist-dtl-title')
+      ?.textContent
+      ?.trim()
     data.details = strings.viewProfile
     if (name)
       data.state = name
-    data.smallImageKey = Assets.Reading
-    return
   }
-  if (pathname.startsWith('/search')) {
+  else if (pathname.startsWith('/search')) {
     const keyword = new URLSearchParams(search).get('keyword')?.trim()
-    if (keyword) {
-      data.details = strings.searchFor
+    data.details = keyword ? strings.searchFor : strings.searchSomething
+    if (keyword)
       data.state = keyword
-    }
-    else {
-      data.details = strings.searchSomething
-    }
     data.smallImageKey = Assets.Search
-    return
   }
-  if (pathname.startsWith('/about')) {
+  else if (pathname.startsWith('/about')) {
     data.details = strings.readingAbout
     data.state = 'Kiite'
-    data.smallImageKey = Assets.Reading
-    return
   }
-  if (pathname.startsWith('/my/')) {
+  else if (pathname.startsWith('/my/')) {
     data.details = strings.viewAccount
-    data.smallImageKey = Assets.Reading
-    return
   }
-  if (pathname.startsWith('/faq')) {
+  else if (pathname.startsWith('/faq')) {
     data.details = strings.viewAHelpPage
-    data.smallImageKey = Assets.Reading
-    return
   }
-  data.details = strings.browsing
-  data.smallImageKey = Assets.Reading
+  else {
+    data.details = strings.browsing
+  }
 }
 
 let strings: PresenceStrings | null = null

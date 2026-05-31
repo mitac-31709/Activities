@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schemas.premid.app/metadata/1.16",
+  "apiVersion": 1,
+  "author": {
+    "id": "000000000000000000",
+    "name": "USER"
+  },
+  "service": "DMM TV",
+  "description": {
+    "en": "DMM TV is a video distribution service where you can enjoy a wide variety of content such as anime, 2.5D musicals, variety shows, and movies.",
+    "ja": "DMM TVは、アニメ、2.5次元舞台、バラエティ、映画など幅広い作品を楽しめる動画配信サービスです。"
+  },
+  "url": "tv.dmm.com",
+  "regExp": "^https?[:][/][/]([a-z0-9-]+[.])*tv[.]dmm[.]com[/]",
+  "version": "1.0.0",
+  "logo": "https://i.imgur.com/placeholder.png",
+  "thumbnail": "https://i.imgur.com/placeholder.png",
+  "color": "#111111",
+  "category": "videos",
+  "tags": [
+    "anime",
+    "shows",
+    "movies",
+    "vod",
+    "dmm"
+  ],
+  "settings": [
+    {
+      "id": "multiLanguage",
+      "multiLanguage": true
+    },
+    {
+      "id": "privacy",
+      "title": "Privacy Mode",
+      "icon": "fad fa-user-secret",
+      "value": false
+    },
+    {
+      "id": "timestamp",
+      "title": "Show Timestamps",
+      "icon": "fad fa-stopwatch",
+      "value": true
+    }
+  ]
+}
